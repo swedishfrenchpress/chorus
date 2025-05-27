@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-export function SendPage() {
+export function ReceivePage() {
   const navigate = useNavigate();
 
   return (
@@ -28,16 +28,16 @@ export function SendPage() {
           </Button>
         </div>
 
-        <Section title="Bitcoin Lightning">
-          <CashuWalletLightningCard />
+        <Section title="Lightning Network">
+          <CashuWalletLightningCard defaultTab="receive" />
         </Section>
 
-        <Section title="Ecash">
-          <CashuTokenCard />
+        <Section title="Cashu Tokens">
+          <CashuTokenCard defaultTab="receive" />
         </Section>
       </div>
     </div>
   );
 }
 
-export default SendPage; 
+export default ReceivePage; 

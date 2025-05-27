@@ -22,8 +22,6 @@ import {
   AlertCircle,
   ArrowDownLeft,
   ArrowUpRight,
-  ChevronDown,
-  ChevronUp,
   Copy,
   Loader2,
   QrCode,
@@ -58,7 +56,11 @@ interface TokenEvent {
   createdAt: number;
 }
 
-export function CashuWalletLightningCard() {
+interface CashuWalletLightningCardProps {
+  defaultTab?: "send" | "receive";
+}
+
+export function CashuWalletLightningCard({ defaultTab = "send" }: CashuWalletLightningCardProps) {
   const { user } = useCurrentUser();
   const { wallet, isLoading, updateProofs, tokens = [] } = useCashuWallet();
   const { createHistory } = useCashuHistory();
@@ -66,7 +68,7 @@ export function CashuWalletLightningCard() {
   const transactionHistoryStore = useTransactionHistoryStore();
   const walletUiStore = useWalletUiStore();
   const isExpanded = walletUiStore.expandedCards.lightning;
-  const [activeTab, setActiveTab] = useState("receive");
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   const [receiveAmount, setReceiveAmount] = useState("");
   const [invoice, setInvoice] = useState("");
@@ -74,18 +76,14 @@ export function CashuWalletLightningCard() {
   const [paymentRequest, setPaymentRequest] = useState("");
   const [sendInvoice, setSendInvoice] = useState("");
   const [invoiceAmount, setInvoiceAmount] = useState<number | null>(null);
-  const [invoiceFeeReserve, setInvoiceFeeReserve] = useState<number | null>(
-    null
-  );
+  const [invoiceFeeReserve, setInvoiceFeeReserve] = useState<number | null>(null);
   const [mintQuote, setMintQuote] = useState<MintQuoteResponse | null>(null);
   const [meltQuote, setMeltQuote] = useState<MeltQuoteResponse | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
-  const [pendingTransactionId, setPendingTransactionId] = useState<
-    string | null
-  >(null);
+  const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const processingInvoiceRef = useRef<string | null>(null);
 
@@ -256,8 +254,7 @@ export function CashuWalletLightningCard() {
     try {
       setIsLoadingInvoice(true);
       const meltQuote = await createMeltQuote(mintUrl, value);
-      setcurrentMeltQuoteId(meltQuote.quote);
-      console.log(meltQuote);
+      setMeltQuote(meltQuote);
 
       // Parse amount from invoice
       setInvoiceAmount(meltQuote.amount);
@@ -268,7 +265,6 @@ export function CashuWalletLightningCard() {
         "Failed to create melt quote: " +
           (error instanceof Error ? error.message : String(error))
       );
-      setcurrentMeltQuoteId(""); // Reset quote ID on error
       handleCancel();
     } finally {
       setIsLoadingInvoice(false);
@@ -359,7 +355,7 @@ export function CashuWalletLightningCard() {
       // Pay the invoice
       const result = await payMeltQuote(
         mintUrl,
-        currentMeltQuoteId,
+        meltQuote?.quote || "",
         selectedProofs
       );
 
@@ -386,7 +382,7 @@ export function CashuWalletLightningCard() {
         setSendInvoice("");
         setInvoiceAmount(null);
         setInvoiceFeeReserve(null);
-        setcurrentMeltQuoteId("");
+        setMeltQuote(null);
         processingInvoiceRef.current = null;
         setTimeout(() => setSuccess(null), 5000);
       }
@@ -396,7 +392,6 @@ export function CashuWalletLightningCard() {
         "Failed to pay Lightning invoice: " +
           (error instanceof Error ? error.message : String(error))
       );
-      setcurrentMeltQuoteId(""); // Reset quote ID on error
     } finally {
       setIsProcessing(false);
     }
@@ -404,13 +399,11 @@ export function CashuWalletLightningCard() {
 
   // If the component unmounts or the user cancels, make sure we don't remove the pending transaction
   const handleCancel = () => {
-    setInvoice("");
-    setcurrentMeltQuoteId("");
     setSendInvoice("");
     setInvoiceAmount(null);
     setInvoiceFeeReserve(null);
+    setMeltQuote(null);
     processingInvoiceRef.current = null;
-    // Don't remove the pending transaction, leave it in the history
   };
 
   if (isLoading) {
@@ -434,7 +427,7 @@ export function CashuWalletLightningCard() {
 
   return (
     <div>
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(value: "send" | "receive") => setActiveTab(value)}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="receive">
             <ArrowDownLeft className="h-4 w-4 mr-2" />
@@ -520,7 +513,7 @@ export function CashuWalletLightningCard() {
 
         <TabsContent value="send" className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Invoice</Label>
+            <Label htmlFor="invoice">Invoice</Label>
             <div className="relative">
               <Input
                 id="invoice"
@@ -559,13 +552,7 @@ export function CashuWalletLightningCard() {
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => {
-                setSendInvoice("");
-                setInvoiceAmount(null);
-                setInvoiceFeeReserve(null);
-                setcurrentMeltQuoteId("");
-                processingInvoiceRef.current = null;
-              }}
+              onClick={handleCancel}
             >
               Cancel
             </Button>

@@ -20,6 +20,7 @@ const Settings = lazy(() => import("./pages/settings/Settings"));
 const Notifications = lazy(() => import("./pages/settings/Notifications"));
 const CashuWallet = lazy(() => import("./pages/CashuWallet"));
 const SendPage = lazy(() => import("./pages/SendPage"));
+const ReceivePage = lazy(() => import("./pages/ReceivePage"));
 const LinkPreviewTest = lazy(() => import("./pages/LinkPreviewTest"));
 const AboutPage = lazy(() => import("@/pages/AboutPage"));
 const FaqPage = lazy(() => import("@/pages/FaqPage"));
@@ -88,6 +89,11 @@ export function AppRouter() {
         <Route path="/send" element={
           <Suspense fallback={<PageLoader />}>
             <SendPage />
+          </Suspense>
+        } />
+        <Route path="/receive" element={
+          <Suspense fallback={<PageLoader />}>
+            <ReceivePage />
           </Suspense>
         } />
         <Route path="/link-preview-test" element={

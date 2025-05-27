@@ -22,7 +22,6 @@ import {
   Copy,
   QrCode,
   Scan,
-  Loader2,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCashuToken } from "@/hooks/useCashuToken";
@@ -34,10 +33,13 @@ import { format } from "date-fns";
 import { getEncodedTokenV4 } from "@cashu/cashu-ts";
 import { useWalletUiStore } from "@/stores/walletUiStore";
 import { formatBalance } from "@/lib/cashu";
-import { useToast } from "@/hooks/useToast";
 import { QRScanner } from "@/components/QRScanner";
 
-export function CashuTokenCard() {
+interface CashuTokenCardProps {
+  defaultTab?: "send" | "receive";
+}
+
+export function CashuTokenCard({ defaultTab = "send" }: CashuTokenCardProps) {
   const { user } = useCurrentUser();
   const { wallet } = useCashuWallet();
   const cashuStore = useCashuStore();
@@ -55,15 +57,14 @@ export function CashuTokenCard() {
   } = useCashuToken();
   const walletUiStore = useWalletUiStore();
   const isExpanded = walletUiStore.expandedCards.token;
-  const { toast } = useToast();
 
-  const [activeTab, setActiveTab] = useState("receive");
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState("");
   const [generatedToken, setGeneratedToken] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // Get recent transactions (last 3)
   const recentTransactions = transactionHistoryStore
@@ -138,171 +139,187 @@ export function CashuTokenCard() {
     }
   };
 
-  const startQrScanner = () => {
-    // This would typically invoke a QR scanner component
-    // For now, we'll just show an alert
-    alert("QR scanner not implemented in this example");
-  };
+  const handleQRScan = async (data: string) => {
+    // Check if it's a Cashu token (starts with 'cashu:')
+    let cleanedData = data.replace(/^cashu:/i, "");
 
-  const handleQRScan = (scannedToken: string) => {
-    setToken(scannedToken);
-    setIsScanning(false);
+    // Basic validation for Cashu token format
+    if (cleanedData.toLowerCase().startsWith("cashu")) {
+      cleanedData = cleanedData.toLowerCase();
+      setToken(cleanedData);
+      setIsScannerOpen(false);
+    } else {
+      setError(
+        "Invalid Cashu token. Please scan a valid Cashu token QR code."
+      );
+      setTimeout(() => setError(null), 3000);
+    }
   };
-
-  if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading wallet...</div>;
-  }
 
   if (!wallet) {
     return (
-      <div>
-        {!user && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              You need to log in to use tokens
-            </AlertDescription>
-          </Alert>
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Send & Receive</CardTitle>
+          <CardDescription>Create a wallet first</CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
   return (
-    <div>
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="receive">
-            <ArrowDownLeft className="h-4 w-4 mr-2" />
-            Receive
-          </TabsTrigger>
-          <TabsTrigger value="send">
-            <ArrowUpRight className="h-4 w-4 mr-2" />
-            Send
-          </TabsTrigger>
-        </TabsList>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Send & Receive</CardTitle>
+          <CardDescription>Transfer Cashu tokens</CardDescription>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => walletUiStore.toggleCardExpansion("token")}
+          aria-label={isExpanded ? "Collapse" : "Expand"}
+        >
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
+      </CardHeader>
+      {isExpanded && (
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={(value: "send" | "receive") => setActiveTab(value)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="receive">
+                <ArrowDownLeft className="h-4 w-4 mr-2" />
+                Receive
+              </TabsTrigger>
+              <TabsTrigger value="send">
+                <ArrowUpRight className="h-4 w-4 mr-2" />
+                Send
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="receive" className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="token">Token</Label>
-            <div className="relative">
-              <Input
-                id="token"
-                placeholder="Paste your token here"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="pr-20"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full px-2 hover:bg-transparent"
-                onClick={() => setIsScanning(true)}
-              >
-                <Scan className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+            <TabsContent value="send" className="space-y-4 mt-4">
+              {!generatedToken ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount (sats)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="100"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
 
-          <Button
-            className="w-full"
-            onClick={handleReceiveToken}
-            disabled={isLoading || !token}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Receive Token"
-            )}
-          </Button>
-        </TabsContent>
+                  <Button
+                    className="w-full"
+                    onClick={handlesendToken}
+                    disabled={
+                      !cashuStore.activeMintUrl || !amount || !user || isLoading
+                    }
+                  >
+                    {isLoading ? "Generating..." : "Generate Token"}
+                  </Button>
+                </>
+              ) : (
+                // Show the generated token
+                <div className="space-y-4">
+                  <div className="bg-muted p-4 rounded-md flex items-center justify-center">
+                    <div className="border border-border p-2 bg-white">
+                      <QRCode value={generatedToken} size={180} />
+                    </div>
+                  </div>
 
-        <TabsContent value="send" className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount (sats)</Label>
-            <Input
-              id="amount"
-              type="number"
-              placeholder="100"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
+                  <div className="space-y-2">
+                    <Label>Token</Label>
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        value={generatedToken}
+                        className="pr-10 font-mono text-xs break-all"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0"
+                        onClick={copyTokenToClipboard}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
 
-          <Button
-            className="w-full"
-            onClick={handlesendToken}
-            disabled={isLoading || !amount}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Generate Token"
-            )}
-          </Button>
-
-          {generatedToken && (
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-md flex items-center justify-center">
-                <div className="border border-border w-48 h-48 flex items-center justify-center bg-white p-2 rounded-md">
-                  <QRCode value={generatedToken} size={180} />
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setGeneratedToken("");
+                      setAmount("");
+                    }}
+                  >
+                    Generate Another Token
+                  </Button>
                 </div>
-              </div>
+              )}
+            </TabsContent>
 
+            <TabsContent value="receive" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Token</Label>
+                <Label htmlFor="token">Token</Label>
                 <div className="relative">
                   <Input
-                    readOnly
-                    value={generatedToken}
-                    className="pr-10 font-mono text-xs break-all"
+                    id="token"
+                    placeholder="cashuB..."
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     className="absolute right-0 top-0"
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedToken);
-                      toast({
-                        title: "Token copied to clipboard",
-                      });
-                    }}
+                    onClick={() => setIsScannerOpen(true)}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Scan className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            </div>
+
+              <Button
+                className="w-full"
+                onClick={handleReceiveToken}
+                disabled={!token || !user || isLoading}
+              >
+                {isLoading ? "Processing..." : "Redeem Token"}
+              </Button>
+            </TabsContent>
+          </Tabs>
+
+          {(error || hookError) && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error || hookError}</AlertDescription>
+            </Alert>
           )}
-        </TabsContent>
-      </Tabs>
 
-      {error && (
-        <Alert variant="destructive" className="mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+          {success && (
+            <Alert className="mt-4">
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
+
+          <QRScanner
+            isOpen={isScannerOpen}
+            onClose={() => setIsScannerOpen(false)}
+            onScan={handleQRScan}
+            title="Scan Cashu Token"
+            description="Position the Cashu token QR code within the frame"
+          />
+        </CardContent>
       )}
-
-      {success && (
-        <Alert className="mt-4">
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
-
-      <QRScanner
-        isOpen={isScanning}
-        onClose={() => setIsScanning(false)}
-        onScan={handleQRScan}
-        title="Scan Token"
-        description="Position the token QR code within the frame"
-      />
-    </div>
+    </Card>
   );
 }

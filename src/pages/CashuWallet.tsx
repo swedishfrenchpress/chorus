@@ -331,7 +331,7 @@ export function CashuWallet() {
           iconBg="bg-green-600"
           title="Receive"
           description="Receive ecash to your wallet"
-          // onClick={...}
+          onClick={() => navigate("/receive")}
         />
         <ActionCard
           icon={<Cog className="h-6 w-6 text-white" />}
