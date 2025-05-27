@@ -37,7 +37,7 @@ export function SendPage() {
         </div>
 
         <Section title="Bitcoin Lightning">
-          <CashuWalletLightningCard defaultTab="send" hideTabs={true} />
+          <CashuWalletLightningCard defaultTab="send" hideTabs={true} hideCancelButton={true} />
         </Section>
 
         <Section title="Ecash">

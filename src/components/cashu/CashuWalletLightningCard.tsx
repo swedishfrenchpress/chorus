@@ -44,9 +44,10 @@ interface TokenEvent {
 interface CashuWalletLightningCardProps {
   defaultTab?: "send" | "receive";
   hideTabs?: boolean;
+  hideCancelButton?: boolean;
 }
 
-export function CashuWalletLightningCard({ defaultTab = "send", hideTabs = false }: CashuWalletLightningCardProps) {
+export function CashuWalletLightningCard({ defaultTab = "send", hideTabs = false, hideCancelButton = false }: CashuWalletLightningCardProps) {
   const { user } = useCurrentUser();
   const { wallet, isLoading, updateProofs, tokens = [] } = useCashuWallet();
   const { createHistory } = useCashuHistory();
@@ -490,6 +491,7 @@ export function CashuWalletLightningCard({ defaultTab = "send", hideTabs = false
                     variant="outline"
                     className="w-full"
                     onClick={handleCancel}
+                    style={{ display: hideCancelButton ? 'none' : undefined }}
                   >
                     Cancel
                   </Button>
@@ -535,13 +537,15 @@ export function CashuWalletLightningCard({ defaultTab = "send", hideTabs = false
               )}
 
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </Button>
+                {!hideCancelButton && (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                )}
                 <Button
                   className="flex-1"
                   onClick={handlePayInvoice}
@@ -634,6 +638,7 @@ export function CashuWalletLightningCard({ defaultTab = "send", hideTabs = false
                     variant="outline"
                     className="w-full"
                     onClick={handleCancel}
+                    style={{ display: hideCancelButton ? 'none' : undefined }}
                   >
                     Cancel
                   </Button>
@@ -678,13 +683,15 @@ export function CashuWalletLightningCard({ defaultTab = "send", hideTabs = false
               )}
 
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </Button>
+                {!hideCancelButton && (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                )}
                 <Button
                   className="flex-1"
                   onClick={handlePayInvoice}
