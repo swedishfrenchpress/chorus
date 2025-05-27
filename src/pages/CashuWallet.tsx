@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
 import { ActionCard } from "@/components/ui/ActionCard";
+import { useNavigate } from "react-router-dom";
 
 export function CashuWallet() {
   const { user } = useCurrentUser();
@@ -42,6 +43,7 @@ export function CashuWallet() {
   const [isProcessingToken, setIsProcessingToken] = useState(false);
   const { showSats, toggleCurrency } = useCurrencyDisplayStore();
   const { data: btcPrice, isLoading: btcPriceLoading } = useBitcoinPrice();
+  const navigate = useNavigate();
 
   // Calculate total balance across all mints
   const balances = calculateBalance(cashuStore.proofs);
@@ -322,7 +324,7 @@ export function CashuWallet() {
           iconBg="bg-blue-600"
           title="Send"
           description="Send ecash to anyone"
-          // onClick={...}
+          onClick={() => navigate("/send")}
         />
         <ActionCard
           icon={<ArrowDownLeft className="h-6 w-6 text-white" />}
