@@ -28,12 +28,12 @@ export function SendPage() {
           </Button>
         </div>
 
-        <Section title="Bitcoin Lightning">
-          <CashuWalletLightningCard />
+        <Section title="Lightning Network">
+          <CashuWalletLightningCard defaultTab="send" hideToggle />
         </Section>
 
-        <Section title="Ecash">
-          <CashuTokenCard />
+        <Section title="Cashu Tokens">
+          <CashuTokenCard defaultTab="send" hideToggle />
         </Section>
       </div>
     </div>

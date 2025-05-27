@@ -1,22 +1,8 @@
 import { useState, useRef } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertCircle,
@@ -47,7 +33,6 @@ import {
   PendingTransaction,
 } from "@/stores/transactionHistoryStore";
 import { v4 as uuidv4 } from "uuid";
-import { useWalletUiStore } from "@/stores/walletUiStore";
 import { QRScanner } from "@/components/QRScanner";
 
 interface TokenEvent {
@@ -66,8 +51,6 @@ export function CashuWalletLightningCard({ defaultTab = "send" }: CashuWalletLig
   const { createHistory } = useCashuHistory();
   const cashuStore = useCashuStore();
   const transactionHistoryStore = useTransactionHistoryStore();
-  const walletUiStore = useWalletUiStore();
-  const isExpanded = walletUiStore.expandedCards.lightning;
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   const [receiveAmount, setReceiveAmount] = useState("");
