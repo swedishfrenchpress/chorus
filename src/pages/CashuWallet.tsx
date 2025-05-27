@@ -13,7 +13,7 @@ import { useCashuWallet } from "@/hooks/useCashuWallet";
 import { useCashuStore } from "@/stores/cashuStore";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { useToast } from "@/hooks/useToast";
-import { Loader2, Bitcoin, DollarSign, ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Cog } from "lucide-react";
+import { Loader2, Bitcoin, DollarSign, ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Cog, QrCode, ScanLine, Scan } from "lucide-react";
 // import { formatUSD, satoshisToUSD } from "@/lib/bitcoinUtils";
 import { formatBalance, calculateBalance } from "@/lib/cashu";
 import { useBitcoinPrice, satsToUSD, formatUSD } from "@/hooks/useBitcoinPrice";
@@ -191,7 +191,7 @@ export function CashuWallet() {
       <Separator className="my-2" />
 
       {/* Wallet Info Modal - Upper Left */}
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2">
@@ -270,6 +270,10 @@ export function CashuWallet() {
             </DialogHeader>
           </DialogContent>
         </Dialog>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Scan className="h-4 w-4" />
+          <span className="sr-only">Scan</span>
+        </Button>
       </div>
 
       {/* Total Balance Display */}
