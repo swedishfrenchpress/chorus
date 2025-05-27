@@ -13,7 +13,7 @@ import { useCashuWallet } from "@/hooks/useCashuWallet";
 import { useCashuStore } from "@/stores/cashuStore";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { useToast } from "@/hooks/useToast";
-import { Loader2, Bitcoin, DollarSign, ArrowLeftRight } from "lucide-react";
+import { Loader2, Bitcoin, DollarSign, ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Cog } from "lucide-react";
 // import { formatUSD, satoshisToUSD } from "@/lib/bitcoinUtils";
 import { formatBalance, calculateBalance } from "@/lib/cashu";
 import { useBitcoinPrice, satsToUSD, formatUSD } from "@/hooks/useBitcoinPrice";
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
+import { ActionCard } from "@/components/ui/ActionCard";
 
 export function CashuWallet() {
   const { user } = useCurrentUser();
@@ -273,7 +274,7 @@ export function CashuWallet() {
 
       {/* Total Balance Display */}
       {user && wallet && (
-        <div className="text-center py-2">
+        <div className="text-center py-6">
           <div className="text-5xl font-bold tabular-nums">
             {showSats
               ? formatBalance(totalBalance)
@@ -310,19 +311,33 @@ export function CashuWallet() {
         </div>
       )}
 
-      <div className="space-y-8">
-        <Section title="ecash">
-          <CashuTokenCard />
-        </Section>
+      {/* Main Actions */}
+      <div className="space-y-4 max-w-md mx-auto mb-8">
+        <ActionCard
+          icon={<ArrowUpRight className="h-6 w-6 text-white" />}
+          iconBg="bg-blue-600"
+          title="Send"
+          description="Send ecash to anyone"
+          // onClick={...}
+        />
+        <ActionCard
+          icon={<ArrowDownLeft className="h-6 w-6 text-white" />}
+          iconBg="bg-green-600"
+          title="Receive"
+          description="Receive ecash to your wallet"
+          // onClick={...}
+        />
+        <ActionCard
+          icon={<Cog className="h-6 w-6 text-white" />}
+          iconBg="bg-gray-600"
+          title="Settings"
+          description="Wallet preferences"
+          // onClick={...}
+        />
+      </div>
 
-        <Section title="Lightning">
-          <CashuWalletLightningCard />
-        </Section>
-
-        <Section title="Wallet">
-          <CashuWalletCard />
-        </Section>
-
+      {/* History Section */}
+      <div className="mt-8">
         <Section title="History">
           <CashuHistoryCard />
         </Section>
