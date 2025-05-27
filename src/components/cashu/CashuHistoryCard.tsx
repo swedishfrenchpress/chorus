@@ -121,129 +121,100 @@ export function CashuHistoryCard() {
   };
 
   if (isLoading && history.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-          <CardDescription>Loading history...</CardDescription>
-        </CardHeader>
-      </Card>
-    );
+    return <div className="text-sm text-muted-foreground">Loading history...</div>;
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Transaction History</CardTitle>
-          <CardDescription>Your Cashu transaction history</CardDescription>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => walletUiStore.toggleCardExpansion("history")}
-          aria-label={isExpanded ? "Collapse" : "Expand"}
-        >
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-      </CardHeader>
-      {isExpanded && (
-        <CardContent>
-          {history.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No transactions yet</p>
-          ) : (
-            <div className="space-y-4">
-              {history.slice(0, visibleEntries).map((entry) => (
-                <div key={entry.id} className="flex items-start gap-4">
-                  <div
-                    className={`p-2 rounded-full ${
+    <div>
+      {history.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No transactions yet</p>
+      ) : (
+        <div className="space-y-4">
+          {history.slice(0, visibleEntries).map((entry) => (
+            <div key={entry.id} className="flex items-start gap-4">
+              <div
+                className={`p-2 rounded-full ${
+                  isPending(entry)
+                    ? "bg-yellow-100 text-yellow-700"
+                    : entry.direction === "in"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {isPending(entry) ? (
+                  <Clock className="h-4 w-4" />
+                ) : entry.direction === "in" ? (
+                  <ArrowDownLeft className="h-4 w-4" />
+                ) : (
+                  <ArrowUpRight className="h-4 w-4" />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between">
+                  <h4 className="font-medium">
+                    {isPending(entry)
+                      ? "Pending"
+                      : entry.direction === "in"
+                      ? "Received"
+                      : "Sent"}
+                  </h4>
+                  <span
+                    className={
                       isPending(entry)
-                        ? "bg-yellow-100 text-yellow-700"
+                        ? "text-yellow-600"
                         : entry.direction === "in"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
                   >
-                    {isPending(entry) ? (
-                      <Clock className="h-4 w-4" />
-                    ) : entry.direction === "in" ? (
-                      <ArrowDownLeft className="h-4 w-4" />
-                    ) : (
-                      <ArrowUpRight className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between">
-                      <h4 className="font-medium">
-                        {isPending(entry)
-                          ? "Pending"
-                          : entry.direction === "in"
-                          ? "Received"
-                          : "Sent"}
-                      </h4>
-                      <span
-                        className={
-                          isPending(entry)
-                            ? "text-yellow-600"
-                            : entry.direction === "in"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }
-                      >
-                        {entry.direction === "in" ? "+" : "-"}
-                        {formatAmount(parseInt(entry.amount))}
-                      </span>
-                    </div>
-                    {entry.timestamp && (
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(entry.timestamp * 1000), "PPpp")}
-                      </p>
-                    )}
-                    {!isPending(entry) &&
-                      entry.redeemedTokens &&
-                      entry.redeemedTokens.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Redeemed from eCash
-                        </p>
+                    {entry.direction === "in" ? "+" : "-"}
+                    {formatAmount(parseInt(entry.amount))}
+                  </span>
+                </div>
+                {entry.timestamp && (
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(entry.timestamp * 1000), "PPpp")}
+                  </p>
+                )}
+                {!isPending(entry) &&
+                  entry.redeemedTokens &&
+                  entry.redeemedTokens.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Redeemed from eCash
+                    </p>
+                  )}
+                {isPending(entry) && (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleWithdraw(entry)}
+                      disabled={processingId === entry.id}
+                    >
+                      {processingId === entry.id ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Check Payment"
                       )}
-                    {isPending(entry) && (
-                      <div className="mt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleWithdraw(entry)}
-                          disabled={processingId === entry.id}
-                        >
-                          {processingId === entry.id ? (
-                            <>
-                              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            "Check Payment"
-                          )}
-                        </Button>
-                      </div>
-                    )}
+                    </Button>
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
+            </div>
+          ))}
 
-              {history.length > visibleEntries && (
-                <div className="flex justify-center mt-4">
-                  <Button variant="outline" size="sm" onClick={showMore}>
-                    Show more
-                  </Button>
-                </div>
-              )}
+          {history.length > visibleEntries && (
+            <div className="flex justify-center mt-4">
+              <Button variant="outline" size="sm" onClick={showMore}>
+                Show more
+              </Button>
             </div>
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }

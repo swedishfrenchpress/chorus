@@ -29,6 +29,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Section } from "@/components/ui/section";
 
 export function CashuWallet() {
   const { user } = useCurrentUser();
@@ -309,12 +310,22 @@ export function CashuWallet() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <CashuWalletLightningCard />
-        <CashuWalletCard />
-        {/* <NutzapCard /> */}
-        <CashuTokenCard />
-        <CashuHistoryCard />
+      <div className="space-y-8">
+        <Section title="ecash">
+          <CashuTokenCard />
+        </Section>
+
+        <Section title="Lightning">
+          <CashuWalletLightningCard />
+        </Section>
+
+        <Section title="Wallet">
+          <CashuWalletCard />
+        </Section>
+
+        <Section title="History">
+          <CashuHistoryCard />
+        </Section>
       </div>
 
       {!user && (

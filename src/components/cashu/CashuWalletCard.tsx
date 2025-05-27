@@ -193,184 +193,136 @@ export function CashuWalletCard() {
     return mintUrl.replace("https://", "");
   };
 
-  if (isLoading || isCreatingWallet) {
-    return (
-      <Card>
-        <CardHeader>
-          <div>
-            <CardTitle>Mints</CardTitle>
-            <CardDescription>Loading wallet...</CardDescription>
-          </div>
-        </CardHeader>
-      </Card>
-    );
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">Loading wallet...</div>;
   }
 
   if (!wallet) {
     return (
-      <Card>
-        <CardHeader>
-          <div>
-            <CardTitle>Mints</CardTitle>
-            <CardDescription>You don't have a Cashu wallet yet</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={() => handleCreateWallet()} disabled={!user}>
-            Create Wallet
-          </Button>
-          {!user && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                You need to log in to create a wallet
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
+      <div>
+        {!user && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              You need to log in to create a wallet
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Mints</CardTitle>
-          <CardDescription>Manage your Cashu mints</CardDescription>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Add New Mint</Label>
+        <div className="flex gap-2">
+          <Input
+            placeholder="https://mint.example.com"
+            value={newMint}
+            onChange={(e) => setNewMint(e.target.value)}
+          />
+          <Button
+            onClick={handleAddMint}
+            disabled={!newMint}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => walletUiStore.toggleCardExpansion("mints")}
-          aria-label={isExpanded ? "Collapse" : "Expand"}
-        >
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-      </CardHeader>
-      {isExpanded && (
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium">Mints</h3>
-            </div>
-            <div>
-              {wallet.mints && wallet.mints.length > 0 ? (
-                <div className="space-y-2">
-                  {wallet.mints.map((mint) => {
-                    const amount = balances[mint] || 0;
-                    const isActive = cashuStore.activeMintUrl === mint;
-                    const isExpanded = expandedMint === mint;
+      </div>
 
-                    return (
-                      <div key={mint} className="space-y-1">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="text-sm hover:text-primary text-left truncate max-w-[160px]"
-                              onClick={() => handleSetActiveMint(mint)}
-                            >
-                              {cleanMintUrl(mint)}
-                            </button>
-                            {isActive && (
-                              <Badge
-                                variant="secondary"
-                                className="h-5 px-1.5 bg-green-100 text-green-700 hover:bg-green-200"
-                              >
-                                Active
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`font-medium tabular-nums ${
-                                flashingMints[mint] ? "flash-update" : ""
-                              }`}
-                            >
-                              {showSats
-                                ? formatBalance(amount)
-                                : btcPrice
-                                ? formatUSD(satsToUSD(amount, btcPrice.USD))
-                                : formatBalance(amount)}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => toggleExpandMint(mint)}
-                            >
-                              {isExpanded ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                        {isExpanded && (
-                          <div className="pl-4 flex justify-end gap-2 pt-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCleanSpentProofs(mint)}
-                              className="border-muted-foreground/20 hover:bg-muted"
-                            >
-                              <Eraser className="h-4 w-4 mr-1 text-amber-500" />
-                              Cleanup Wallet
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleRemoveMint(mint)}
-                              className="border-muted-foreground/20 hover:bg-destructive/10"
-                            >
-                              <Trash className="h-4 w-4 mr-1 text-destructive" />
-                              Remove
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+      <div className="space-y-4">
+        {wallet.mints.map((mint) => {
+          const amount = balances[mint] || 0;
+          const isExpanded = expandedMint === mint;
+
+          return (
+            <div
+              key={mint}
+              className="rounded-lg border p-4 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">
+                    {mint.replace(/^https?:\/\//, "")}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`font-medium tabular-nums ${
+                        flashingMints[mint] ? "flash-update" : ""
+                      }`}
+                    >
+                      {showSats
+                        ? formatBalance(amount)
+                        : btcPrice
+                        ? formatUSD(satsToUSD(amount, btcPrice.USD))
+                        : formatBalance(amount)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => toggleExpandMint(mint)}
+                    >
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground mt-2">
-                  No mints added yet
-                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveMint(mint)}
+                    disabled={wallet.mints.length === 1}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {isExpanded && (
+                <div className="space-y-4">
+                  <Separator />
+                  <div className="flex justify-between items-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCleanSpentProofs(mint)}
+                    >
+                      <Eraser className="h-4 w-4 mr-2" />
+                      Clean Spent
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSetActiveMint(mint)}
+                      disabled={cashuStore.activeMintUrl === mint}
+                    >
+                      {cashuStore.activeMintUrl === mint ? (
+                        "Active"
+                      ) : (
+                        "Set Active"
+                      )}
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
+          );
+        })}
+      </div>
 
-            <Separator />
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <div className="flex items-end gap-2">
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="mint">Add Mint</Label>
-                <Input
-                  id="mint"
-                  placeholder="https://mint.example.com"
-                  value={newMint}
-                  onChange={(e) => setNewMint(e.target.value)}
-                />
-              </div>
-              <Button onClick={handleAddMint}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add
-              </Button>
-            </div>
-          </div>
-        </CardContent>
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-    </Card>
+    </div>
   );
 }
