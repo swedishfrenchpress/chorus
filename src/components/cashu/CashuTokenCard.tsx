@@ -26,9 +26,10 @@ import { QRScanner } from "@/components/QRScanner";
 
 interface CashuTokenCardProps {
   defaultTab?: "send" | "receive";
+  hideTabs?: boolean;
 }
 
-export function CashuTokenCard({ defaultTab = "send" }: CashuTokenCardProps) {
+export function CashuTokenCard({ defaultTab = "send", hideTabs = false }: CashuTokenCardProps) {
   const { user } = useCurrentUser();
   const { wallet } = useCashuWallet();
   const cashuStore = useCashuStore();
@@ -45,7 +46,7 @@ export function CashuTokenCard({ defaultTab = "send" }: CashuTokenCardProps) {
     error: hookError,
   } = useCashuToken();
 
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab] = useState(defaultTab);
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState("");
   const [generatedToken, setGeneratedToken] = useState("");
@@ -160,113 +161,214 @@ export function CashuTokenCard({ defaultTab = "send" }: CashuTokenCardProps) {
 
   return (
     <div>
-      <Tabs value={activeTab} onValueChange={(value: "send" | "receive") => setActiveTab(value)}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="receive">
-            <ArrowDownLeft className="h-4 w-4 mr-2" />
-            Receive
-          </TabsTrigger>
-          <TabsTrigger value="send">
-            <ArrowUpRight className="h-4 w-4 mr-2" />
-            Send
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab}>
+        {!hideTabs && (
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="receive">
+              <ArrowDownLeft className="h-4 w-4 mr-2" />
+              Receive
+            </TabsTrigger>
+            <TabsTrigger value="send">
+              <ArrowUpRight className="h-4 w-4 mr-2" />
+              Send
+            </TabsTrigger>
+          </TabsList>
+        )}
 
-        <TabsContent value="send" className="space-y-4 mt-4">
-          {!generatedToken ? (
-            <>
+        {hideTabs ? (
+          activeTab === "receive" ? (
+            <TabsContent value="receive" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount (sats)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="100"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </div>
-
-              <Button
-                className="w-full"
-                onClick={handlesendToken}
-                disabled={
-                  !cashuStore.activeMintUrl || !amount || !user || isLoading
-                }
-              >
-                {isLoading ? "Generating..." : "Generate Token"}
-              </Button>
-            </>
-          ) : (
-            // Show the generated token
-            <div className="space-y-4">
-              <div className="bg-muted p-4 rounded-md flex items-center justify-center">
-                <div className="border border-border p-2 bg-white">
-                  <QRCode value={generatedToken} size={180} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Token</Label>
+                <Label htmlFor="token">Token</Label>
                 <div className="relative">
                   <Input
-                    readOnly
-                    value={generatedToken}
-                    className="pr-10 font-mono text-xs break-all"
+                    id="token"
+                    placeholder="cashuB..."
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     className="absolute right-0 top-0"
-                    onClick={copyTokenToClipboard}
+                    onClick={() => setIsScannerOpen(true)}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Scan className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
               <Button
-                variant="outline"
                 className="w-full"
-                onClick={() => {
-                  setGeneratedToken("");
-                  setAmount("");
-                }}
+                onClick={handleReceiveToken}
+                disabled={!token || !user || isLoading}
               >
-                Generate Another Token
+                {isLoading ? "Processing..." : "Redeem Token"}
               </Button>
-            </div>
-          )}
-        </TabsContent>
+            </TabsContent>
+          ) : (
+            <TabsContent value="send" className="space-y-4 mt-4">
+              {!generatedToken ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount (sats)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="100"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
 
-        <TabsContent value="receive" className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="token">Token</Label>
-            <div className="relative">
-              <Input
-                id="token"
-                placeholder="cashuB..."
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-              />
+                  <Button
+                    className="w-full"
+                    onClick={handlesendToken}
+                    disabled={
+                      !cashuStore.activeMintUrl || !amount || !user || isLoading
+                    }
+                  >
+                    {isLoading ? "Generating..." : "Generate Token"}
+                  </Button>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-muted p-4 rounded-md flex items-center justify-center">
+                    <div className="border border-border p-2 bg-white">
+                      <QRCode value={generatedToken} size={180} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Token</Label>
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        value={generatedToken}
+                        className="pr-10 font-mono text-xs break-all"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0"
+                        onClick={copyTokenToClipboard}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setGeneratedToken("");
+                      setAmount("");
+                    }}
+                  >
+                    Generate Another Token
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+          )
+        ) : (
+          <>
+            <TabsContent value="receive" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="token">Token</Label>
+                <div className="relative">
+                  <Input
+                    id="token"
+                    placeholder="cashuB..."
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0"
+                    onClick={() => setIsScannerOpen(true)}
+                  >
+                    <Scan className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
               <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0"
-                onClick={() => setIsScannerOpen(true)}
+                className="w-full"
+                onClick={handleReceiveToken}
+                disabled={!token || !user || isLoading}
               >
-                <Scan className="h-4 w-4" />
+                {isLoading ? "Processing..." : "Redeem Token"}
               </Button>
-            </div>
-          </div>
+            </TabsContent>
+            <TabsContent value="send" className="space-y-4 mt-4">
+              {!generatedToken ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount (sats)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="100"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
 
-          <Button
-            className="w-full"
-            onClick={handleReceiveToken}
-            disabled={!token || !user || isLoading}
-          >
-            {isLoading ? "Processing..." : "Redeem Token"}
-          </Button>
-        </TabsContent>
+                  <Button
+                    className="w-full"
+                    onClick={handlesendToken}
+                    disabled={
+                      !cashuStore.activeMintUrl || !amount || !user || isLoading
+                    }
+                  >
+                    {isLoading ? "Generating..." : "Generate Token"}
+                  </Button>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-muted p-4 rounded-md flex items-center justify-center">
+                    <div className="border border-border p-2 bg-white">
+                      <QRCode value={generatedToken} size={180} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Token</Label>
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        value={generatedToken}
+                        className="pr-10 font-mono text-xs break-all"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0"
+                        onClick={copyTokenToClipboard}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setGeneratedToken("");
+                      setAmount("");
+                    }}
+                  >
+                    Generate Another Token
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+          </>
+        )}
       </Tabs>
 
       {(error || hookError) && (

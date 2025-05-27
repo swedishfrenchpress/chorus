@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Section } from "@/components/ui/section";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowDownLeft } from "lucide-react";
 
 export function ReceivePage() {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export function ReceivePage() {
       <Separator className="my-2" />
 
       <div className="space-y-8 max-w-md mx-auto">
-        <div className="flex justify-start">
+        <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
@@ -24,16 +24,24 @@ export function ReceivePage() {
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to wallet
+            Back
           </Button>
         </div>
 
-        <Section title="Lightning Network">
-          <CashuWalletLightningCard defaultTab="receive" />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <ArrowDownLeft className="h-6 w-6 text-green-600" />
+            <h1 className="text-2xl font-bold">Receive</h1>
+          </div>
+          <p className="text-muted-foreground">Receive ecash in your wallet</p>
+        </div>
+
+        <Section title="Bitcoin Lightning">
+          <CashuWalletLightningCard defaultTab="receive" hideTabs={true} />
         </Section>
 
-        <Section title="Cashu Tokens">
-          <CashuTokenCard defaultTab="receive" />
+        <Section title="Ecash">
+          <CashuTokenCard defaultTab="receive" hideTabs={true} />
         </Section>
       </div>
     </div>
